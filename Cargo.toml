@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 openssl = "0.10.28"
+sha2 = "0.8.1"
