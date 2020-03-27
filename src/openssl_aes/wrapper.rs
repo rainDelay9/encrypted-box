@@ -2,8 +2,8 @@ pub use crate::openssl_aes::defs;
 pub use crate::openssl_aes::errors;
 use openssl::symm::{decrypt, encrypt, Cipher};
 
-const IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
-const IV32: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
+const _IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
+const _IV32: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
 
 pub struct OpensslAesWrapper {
     cipher: Cipher,
@@ -29,8 +29,8 @@ impl OpensslAesWrapper {
 
     fn get_iv(&self) -> Option<&[u8]> {
         match self.cipher.iv_len() {
-            Some(16) => Some(&IV16[..]),
-            Some(32) => Some(&IV32[..]),
+            Some(16) => Some(&_IV16[..]),
+            Some(32) => Some(&_IV32[..]),
             _ => None,
         }
     }

@@ -1,17 +1,37 @@
+use crate::kdf;
 use crate::openssl_aes::wrapper as aes;
 
 pub struct EncryptedBox {
-    fields: String,
+    fields: Vec<u8>,
     key: Vec<u8>,
-    cipher: aes::OpensslAesWrapper,
+    scheme: aes::OpensslAesWrapper,
 }
 
 impl EncryptedBox {
-    pub fn new(fields: String, key: Vec<u8>, cipher: aes::OpensslAesWrapper) -> EncryptedBox {
+    pub fn new(fields: Vec<u8>, key: Vec<u8>, scheme: aes::OpensslAesWrapper) -> EncryptedBox {
         EncryptedBox {
             fields,
             key,
-            cipher,
+            scheme,
         }
+    }
+
+    pub fn encrypt(&self) -> std::vec::Vec<u8> {
+        self.scheme
+            .encrypt(&self.key[..], &self.fields[..])
+            .expect("Encryption failed!")
+    }
+
+    pub fn decrypt(
+        password: String,
+        ciphertext: &[u8],
+        aes_enum: aes::defs::OpenSslVariants,
+    ) -> EncryptedBox {
+        let key = kdf::derive_key_from_password(&password);
+        let scheme = aes::OpensslAesWrapper::new(aes_enum);
+        let fields = scheme
+            .decrypt(&key, ciphertext)
+            .expect("decryption failed!");
+        EncryptedBox::new(fields, key, scheme)
     }
 }

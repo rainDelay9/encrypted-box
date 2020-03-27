@@ -3,9 +3,10 @@ use crate::kdf;
 use crate::openssl_aes::defs as aes_defs;
 use crate::openssl_aes::wrapper as aes;
 
+#[allow(dead_code)]
 pub struct EncryptedBoxBuilder {
     cipher: aes::OpensslAesWrapper,
-    fields: Vec<String>,
+    fields: Vec<u8>,
     key: Vec<u8>,
 }
 
@@ -18,26 +19,25 @@ impl EncryptedBoxBuilder {
         }
     }
 
-    pub fn add_field(&mut self, arg: String) -> &mut EncryptedBoxBuilder {
-        self.fields.push(arg);
+    pub fn add_field<T>(mut self, arg: T) -> EncryptedBoxBuilder
+    where
+        T: ToString,
+    {
+        self.fields.extend(arg.to_string().as_bytes());
         self
     }
 
-    pub fn set_password(&mut self, password: String) -> &mut EncryptedBoxBuilder {
+    pub fn set_password(mut self, password: String) -> EncryptedBoxBuilder {
         self.key = kdf::derive_key_from_password(&password);
         self
     }
 
-    pub fn set_cipher(&mut self, e: aes_defs::OpenSslVariants) -> &mut EncryptedBoxBuilder {
+    pub fn set_cipher(mut self, e: aes_defs::OpenSslVariants) -> EncryptedBoxBuilder {
         self.cipher = aes::OpensslAesWrapper::new(e);
         self
     }
 
     pub fn build(self) -> EncryptedBox {
-        let fields_str = self
-            .fields
-            .iter()
-            .fold(String::new(), |res, field| res + field);
-        EncryptedBox::new(fields_str, self.key.clone(), self.cipher)
+        EncryptedBox::new(self.fields, self.key, self.cipher)
     }
 }
