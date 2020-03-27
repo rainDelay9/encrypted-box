@@ -1,7 +1,7 @@
 use openssl::symm::{decrypt, encrypt, Cipher};
 
-pub type EncryptionError = crate::crypto::utils::errors::EncryptionError;
-pub type DecryptionError = crate::crypto::utils::errors::DecryptionError;
+pub type EncryptionError = crate::openssl_aes::errors::EncryptionError;
+pub type DecryptionError = crate::openssl_aes::errors::DecryptionError;
 
 const IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
 const IV32: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
