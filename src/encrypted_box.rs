@@ -1,14 +1,13 @@
 use crate::openssl_aes::wrapper as aes;
-use openssl::symm::Cipher;
 
 pub struct EncryptedBox {
     fields: String,
     key: Vec<u8>,
-    cipher: Cipher,
+    cipher: aes::OpensslAesWrapper,
 }
 
 impl EncryptedBox {
-    pub fn new(fields: String, key: Vec<u8>, cipher: Cipher) -> EncryptedBox {
+    pub fn new(fields: String, key: Vec<u8>, cipher: aes::OpensslAesWrapper) -> EncryptedBox {
         EncryptedBox {
             fields,
             key,

@@ -1,11 +1,10 @@
 use crate::encrypted_box::EncryptedBox;
 use crate::kdf;
 use crate::openssl_aes::defs as aes_defs;
-use crate::openssl_aes::util as aes_util;
-use openssl::symm::Cipher;
+use crate::openssl_aes::wrapper as aes;
 
 pub struct EncryptedBoxBuilder {
-    cipher: Cipher,
+    cipher: aes::OpensslAesWrapper,
     fields: Vec<String>,
     key: Vec<u8>,
 }
@@ -13,7 +12,7 @@ pub struct EncryptedBoxBuilder {
 impl EncryptedBoxBuilder {
     pub fn new() -> EncryptedBoxBuilder {
         EncryptedBoxBuilder {
-            cipher: Cipher::aes_128_cbc(),
+            cipher: aes::OpensslAesWrapper::new(aes::defs::OpenSslVariants::Aes128Cbc),
             fields: Vec::new(),
             key: Vec::new(),
         }
@@ -30,11 +29,11 @@ impl EncryptedBoxBuilder {
     }
 
     pub fn set_cipher(&mut self, e: aes_defs::OpenSslVariants) -> &mut EncryptedBoxBuilder {
-        self.cipher = aes_util::cipher_from_enum(e);
+        self.cipher = aes::OpensslAesWrapper::new(e);
         self
     }
 
-    pub fn build(&self) -> EncryptedBox {
+    pub fn build(self) -> EncryptedBox {
         let fields_str = self
             .fields
             .iter()
