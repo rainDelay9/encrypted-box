@@ -3,12 +3,12 @@ use openssl::symm::Cipher;
 
 pub struct EncryptedBox {
     fields: String,
-    key: String,
+    key: Vec<u8>,
     cipher: Cipher,
 }
 
 impl EncryptedBox {
-    pub fn new(fields: String, key: String, cipher: Cipher) -> EncryptedBox {
+    pub fn new(fields: String, key: Vec<u8>, cipher: Cipher) -> EncryptedBox {
         EncryptedBox {
             fields,
             key,

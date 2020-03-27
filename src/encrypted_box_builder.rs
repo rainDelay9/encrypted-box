@@ -35,10 +35,10 @@ impl EncryptedBoxBuilder {
     }
 
     pub fn build(&self) -> EncryptedBox {
-        // let fields_str = self
-        //     .fields
-        //     .iter()
-        //     .fold(String::new(), |res, field| res.push_str(field));
-        EncryptedBox::new(String::from(""), String::from(""), self.cipher)
+        let fields_str = self
+            .fields
+            .iter()
+            .fold(String::new(), |res, field| res + field);
+        EncryptedBox::new(fields_str, self.key.clone(), self.cipher)
     }
 }
