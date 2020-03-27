@@ -19,16 +19,16 @@ impl EncryptedBox {
     pub fn encrypt(&self) -> std::vec::Vec<u8> {
         self.scheme
             .encrypt(&self.key[..], &self.fields[..])
-            .expect("Encryption failed!")
+            .expect("encryption failed!")
     }
 
     pub fn decrypt(
         password: String,
         ciphertext: &[u8],
-        aes_enum: aes::defs::OpenSslVariants,
+        aes_enum: &aes::defs::OpenSslVariants,
     ) -> EncryptedBox {
-        let key = kdf::derive_key_from_password(&password);
         let scheme = aes::OpensslAesWrapper::new(aes_enum);
+        let key = kdf::derive_key_from_password(&password, scheme.get_key_length());
         let fields = scheme
             .decrypt(&key, ciphertext)
             .expect("decryption failed!");

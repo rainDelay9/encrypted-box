@@ -12,7 +12,7 @@ pub struct EncryptedBoxBuilder {
 impl EncryptedBoxBuilder {
     pub fn new() -> EncryptedBoxBuilder {
         EncryptedBoxBuilder {
-            cipher: aes::OpensslAesWrapper::new(aes::defs::OpenSslVariants::Aes128Cbc),
+            cipher: aes::OpensslAesWrapper::new(&aes::defs::OpenSslVariants::Aes128Cbc),
             fields: Vec::new(),
             key: Vec::new(),
         }
@@ -27,11 +27,11 @@ impl EncryptedBoxBuilder {
     }
 
     pub fn set_password(mut self, password: String) -> EncryptedBoxBuilder {
-        self.key = kdf::derive_key_from_password(&password);
+        self.key = kdf::derive_key_from_password(&password, self.cipher.get_key_length());
         self
     }
 
-    pub fn set_cipher(mut self, e: aes_defs::OpenSslVariants) -> EncryptedBoxBuilder {
+    pub fn set_cipher(mut self, e: &aes_defs::OpenSslVariants) -> EncryptedBoxBuilder {
         self.cipher = aes::OpensslAesWrapper::new(e);
         self
     }

@@ -9,7 +9,7 @@ pub struct OpensslAesWrapper {
 }
 
 impl OpensslAesWrapper {
-    pub fn new(e: defs::OpenSslVariants) -> OpensslAesWrapper {
+    pub fn new(e: &defs::OpenSslVariants) -> OpensslAesWrapper {
         match e {
             defs::OpenSslVariants::Aes128Ofb => OpensslAesWrapper {
                 cipher: Cipher::aes_128_ofb(),
@@ -25,6 +25,23 @@ impl OpensslAesWrapper {
             },
         }
     }
+
+    pub fn get_key_length(&self) -> usize {
+        self.cipher.key_len()
+    }
+    pub fn encrypt(&self, key: &[u8], msg: &[u8]) -> Result<Vec<u8>, errors::OpensslError> {
+        self.check_key_len(key.len())?;
+        let iv = self.get_iv();
+        let enc = encrypt(self.cipher, key, iv, &msg[..])?;
+        Ok(enc)
+    }
+    pub fn decrypt(&self, key: &[u8], ctext: &[u8]) -> Result<Vec<u8>, errors::OpensslError> {
+        self.check_key_len(key.len())?;
+        let iv = self.get_iv();
+        let dec = decrypt(self.cipher, key, iv, &ctext[..])?;
+        Ok(dec)
+    }
+
     // currently we only support 16-byte or 32-byte IVs
     fn get_iv(&self) -> Option<&[u8]> {
         match self.cipher.iv_len() {
@@ -34,31 +51,14 @@ impl OpensslAesWrapper {
         }
     }
 
-    pub fn encrypt(&self, key: &[u8], msg: &[u8]) -> Result<Vec<u8>, errors::EncryptionError> {
-        let expected_key_length = self.cipher.key_len();
-        let actual_key_length = key.len();
-        if expected_key_length != actual_key_length {
-            return Result::Err(errors::EncryptionError::new(String::from(format!(
+    fn check_key_len(&self, key_len: usize) -> Result<(), errors::OpensslError> {
+        let expected_key_length = self.get_key_length();
+        if expected_key_length != key_len {
+            return Result::Err(errors::OpensslError::new(String::from(format!(
                 "key length incompatible. expected {} received {}",
-                expected_key_length, actual_key_length
+                expected_key_length, key_len
             ))));
-        }
-        let iv = self.get_iv();
-        let enc = encrypt(self.cipher, key, iv, &msg[..])?;
-        Ok(enc)
-    }
-
-    pub fn decrypt(&self, key: &[u8], ctext: &[u8]) -> Result<Vec<u8>, errors::DecryptionError> {
-        let expected_key_length = self.cipher.key_len();
-        let actual_key_length = key.len();
-        if expected_key_length != actual_key_length {
-            return Result::Err(errors::DecryptionError::new(String::from(format!(
-                "key length incompatible. expected {} received {}",
-                expected_key_length, actual_key_length
-            ))));
-        }
-        let iv = self.get_iv();
-        let dec = decrypt(self.cipher, key, iv, &ctext[..])?;
-        Ok(dec)
+        };
+        Ok(())
     }
 }

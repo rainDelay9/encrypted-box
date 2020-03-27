@@ -2,47 +2,24 @@ use std::error::Error;
 use std::fmt;
 
 #[derive(Debug)]
-pub struct EncryptionError {
+pub struct OpensslError {
     error: String,
 }
-impl fmt::Display for EncryptionError {
+impl fmt::Display for OpensslError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Encryption error: {}", self.error)
+        write!(f, "OpensslError error: {}", self.error)
     }
 }
 
-impl EncryptionError {
-    pub fn new(error: String) -> EncryptionError {
-        EncryptionError { error }
+impl OpensslError {
+    pub fn new(error: String) -> OpensslError {
+        OpensslError { error }
     }
 }
 
-impl Error for EncryptionError {}
-impl std::convert::From<openssl::error::ErrorStack> for EncryptionError {
-    fn from(es: openssl::error::ErrorStack) -> EncryptionError {
-        EncryptionError::new(es.to_string())
-    }
-}
-
-#[derive(Debug)]
-pub struct DecryptionError {
-    error: String,
-}
-impl fmt::Display for DecryptionError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Decryption error: {}", self.error)
-    }
-}
-
-impl DecryptionError {
-    pub fn new(error: String) -> DecryptionError {
-        DecryptionError { error }
-    }
-}
-
-impl Error for DecryptionError {}
-impl std::convert::From<openssl::error::ErrorStack> for DecryptionError {
-    fn from(es: openssl::error::ErrorStack) -> DecryptionError {
-        DecryptionError::new(es.to_string())
+impl Error for OpensslError {}
+impl std::convert::From<openssl::error::ErrorStack> for OpensslError {
+    fn from(es: openssl::error::ErrorStack) -> OpensslError {
+        OpensslError::new(es.to_string())
     }
 }
