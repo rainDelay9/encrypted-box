@@ -18,6 +18,11 @@ impl EncryptionError {
 }
 
 impl Error for EncryptionError {}
+impl std::convert::From<openssl::error::ErrorStack> for EncryptionError {
+    fn from(es: openssl::error::ErrorStack) -> EncryptionError {
+        EncryptionError::new(es.to_string())
+    }
+}
 
 #[derive(Debug)]
 pub struct DecryptionError {
@@ -36,3 +41,8 @@ impl DecryptionError {
 }
 
 impl Error for DecryptionError {}
+impl std::convert::From<openssl::error::ErrorStack> for DecryptionError {
+    fn from(es: openssl::error::ErrorStack) -> DecryptionError {
+        DecryptionError::new(es.to_string())
+    }
+}

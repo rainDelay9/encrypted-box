@@ -1,7 +1,6 @@
 use crate::encrypted_box::EncryptedBox;
 use crate::kdf;
-use crate::openssl_aes::defs as aes_defs;
-use crate::openssl_aes::wrapper as aes;
+use crate::openssl_aes::{defs as aes_defs, wrapper as aes};
 
 #[allow(dead_code)]
 pub struct EncryptedBoxBuilder {

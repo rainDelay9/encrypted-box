@@ -1,5 +1,4 @@
-pub use crate::openssl_aes::defs;
-pub use crate::openssl_aes::errors;
+pub use crate::openssl_aes::{defs, errors};
 use openssl::symm::{decrypt, encrypt, Cipher};
 
 const _IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
@@ -26,7 +25,7 @@ impl OpensslAesWrapper {
             },
         }
     }
-
+    // currently we only support 16-byte or 32-byte IVs
     fn get_iv(&self) -> Option<&[u8]> {
         match self.cipher.iv_len() {
             Some(16) => Some(&_IV16[..]),
@@ -45,13 +44,8 @@ impl OpensslAesWrapper {
             ))));
         }
         let iv = self.get_iv();
-        let enc = encrypt(self.cipher, key, iv, &msg[..]);
-        match enc {
-            Ok(encryption) => Result::Ok(encryption),
-            Err(_) => Result::Err(errors::EncryptionError::new(String::from(
-                "Unable to encrypt",
-            ))),
-        }
+        let enc = encrypt(self.cipher, key, iv, &msg[..])?;
+        Ok(enc)
     }
 
     pub fn decrypt(&self, key: &[u8], ctext: &[u8]) -> Result<Vec<u8>, errors::DecryptionError> {
@@ -64,12 +58,7 @@ impl OpensslAesWrapper {
             ))));
         }
         let iv = self.get_iv();
-        let dec = decrypt(self.cipher, key, iv, &ctext[..]);
-        match dec {
-            Ok(decryption) => Result::Ok(decryption),
-            Err(_) => Result::Err(errors::DecryptionError::new(String::from(
-                "Unable to encrypt",
-            ))),
-        }
+        let dec = decrypt(self.cipher, key, iv, &ctext[..])?;
+        Ok(dec)
     }
 }
