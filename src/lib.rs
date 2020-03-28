@@ -11,7 +11,8 @@ mod tests {
     #[test]
     fn it_works() {
         let variant = OpenSslVariants::Aes192Ctr;
-        let eb = EncryptedBoxBuilder::new()
+        let mut ebb = EncryptedBoxBuilder::new();
+        let eb = ebb
             .add_field(42)
             .set_cipher(&variant)
             .set_password(String::from("password"))

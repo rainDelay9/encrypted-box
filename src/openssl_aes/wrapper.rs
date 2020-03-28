@@ -7,6 +7,7 @@ const _IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\
 const _IV32: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
 
 #[allow(dead_code)]
+#[derive(Copy, Clone)]
 pub struct OpensslAesWrapper {
     cipher: Cipher,
 }
@@ -50,4 +51,9 @@ impl OpensslAesWrapper {
         };
         Ok(())
     }
+}
+
+#[test]
+fn should_do_something() {
+    assert_eq!(0, 0);
 }

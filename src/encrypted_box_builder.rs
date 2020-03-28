@@ -18,7 +18,7 @@ impl EncryptedBoxBuilder {
         }
     }
 
-    pub fn add_field<T>(mut self, arg: T) -> EncryptedBoxBuilder
+    pub fn add_field<'a, T>(&'a mut self, arg: T) -> &'a mut EncryptedBoxBuilder
     where
         T: ToString,
     {
@@ -26,17 +26,20 @@ impl EncryptedBoxBuilder {
         self
     }
 
-    pub fn set_password(mut self, password: String) -> EncryptedBoxBuilder {
+    pub fn set_password<'a>(&'a mut self, password: String) -> &'a mut EncryptedBoxBuilder {
         self.key = kdf::derive_key_from_password(&password, self.cipher.get_key_length());
         self
     }
 
-    pub fn set_cipher(mut self, e: &aes_defs::OpenSslVariants) -> EncryptedBoxBuilder {
+    pub fn set_cipher<'a>(
+        &'a mut self,
+        e: &aes_defs::OpenSslVariants,
+    ) -> &'a mut EncryptedBoxBuilder {
         self.cipher = aes::OpensslAesWrapper::new(e);
         self
     }
 
-    pub fn build(self) -> EncryptedBox {
-        EncryptedBox::new(self.fields, self.key, self.cipher)
+    pub fn build(&mut self) -> EncryptedBox {
+        EncryptedBox::new(self.fields.clone(), self.key.clone(), self.cipher)
     }
 }
