@@ -1,8 +1,5 @@
 use openssl::symm::Cipher;
 
-use enum_map::{enum_map, Enum, EnumMap};
-
-#[derive(Debug, Enum)]
 pub enum OpenSslVariants {
     //AES128
     Aes128Ecb,
