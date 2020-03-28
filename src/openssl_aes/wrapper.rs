@@ -1,4 +1,6 @@
-pub use crate::openssl_aes::{defs, errors::Error, errors::ErrorKind, errors::Result};
+pub use crate::openssl_aes::{
+    defs, defs::OpenSslVariants, errors::Error, errors::ErrorKind, errors::Result,
+};
 use openssl::symm::{decrypt, encrypt, Cipher};
 use std::result;
 
@@ -10,20 +12,9 @@ pub struct OpensslAesWrapper {
 }
 
 impl OpensslAesWrapper {
-    pub fn new(e: &defs::OpenSslVariants) -> OpensslAesWrapper {
-        match e {
-            defs::OpenSslVariants::Aes128Ofb => OpensslAesWrapper {
-                cipher: Cipher::aes_128_ofb(),
-            },
-            defs::OpenSslVariants::Aes128Cbc => OpensslAesWrapper {
-                cipher: Cipher::aes_128_cbc(),
-            },
-            defs::OpenSslVariants::Aes256Cbc => OpensslAesWrapper {
-                cipher: Cipher::aes_256_cbc(),
-            },
-            defs::OpenSslVariants::Aes256Ecb => OpensslAesWrapper {
-                cipher: Cipher::aes_256_ecb(),
-            },
+    pub fn new(e: &OpenSslVariants) -> OpensslAesWrapper {
+        OpensslAesWrapper {
+            cipher: defs::openssl_enum_to_cipher(e),
         }
     }
 

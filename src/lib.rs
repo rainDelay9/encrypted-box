@@ -10,7 +10,7 @@ mod tests {
     use super::openssl_aes::defs::OpenSslVariants;
     #[test]
     fn it_works() {
-        let variant = OpenSslVariants::Aes128Cbc;
+        let variant = OpenSslVariants::Aes192Ctr;
         let eb = EncryptedBoxBuilder::new()
             .add_field(42)
             .set_cipher(&variant)
