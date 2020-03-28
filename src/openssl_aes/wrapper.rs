@@ -1,5 +1,6 @@
-pub use crate::openssl_aes::{defs, errors};
+pub use crate::openssl_aes::{defs, errors::Error, errors::ErrorKind, errors::Result};
 use openssl::symm::{decrypt, encrypt, Cipher};
+use std::result;
 
 const _IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
 const _IV32: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
@@ -29,16 +30,16 @@ impl OpensslAesWrapper {
     pub fn get_key_length(&self) -> usize {
         self.cipher.key_len()
     }
-    pub fn encrypt(&self, key: &[u8], msg: &[u8]) -> Result<Vec<u8>, errors::OpensslError> {
+    pub fn encrypt(&self, key: &[u8], msg: &[u8]) -> Result<Vec<u8>> {
         self.check_key_len(key.len())?;
         let iv = self.get_iv();
-        let enc = encrypt(self.cipher, key, iv, &msg[..])?;
+        let enc = encrypt(self.cipher, key, iv, &msg[..]).map_err(|e| Error::encryption(e))?;
         Ok(enc)
     }
-    pub fn decrypt(&self, key: &[u8], ctext: &[u8]) -> Result<Vec<u8>, errors::OpensslError> {
+    pub fn decrypt(&self, key: &[u8], ctext: &[u8]) -> Result<Vec<u8>> {
         self.check_key_len(key.len())?;
         let iv = self.get_iv();
-        let dec = decrypt(self.cipher, key, iv, &ctext[..])?;
+        let dec = decrypt(self.cipher, key, iv, &ctext[..]).map_err(|e| Error::decryption(e))?;
         Ok(dec)
     }
 
@@ -51,13 +52,10 @@ impl OpensslAesWrapper {
         }
     }
 
-    fn check_key_len(&self, key_len: usize) -> Result<(), errors::OpensslError> {
+    fn check_key_len(&self, key_len: usize) -> Result<()> {
         let expected_key_length = self.get_key_length();
         if expected_key_length != key_len {
-            return Result::Err(errors::OpensslError::new(String::from(format!(
-                "key length incompatible. expected {} received {}",
-                expected_key_length, key_len
-            ))));
+            return Result::Err(Error::keylen(expected_key_length, key_len));
         };
         Ok(())
     }
