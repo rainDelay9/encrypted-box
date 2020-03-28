@@ -1,5 +1,6 @@
 use openssl::symm::Cipher;
 
+#[allow(dead_code)]
 pub enum OpenSslVariants {
     //AES128
     Aes128Ecb,

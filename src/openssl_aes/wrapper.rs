@@ -2,11 +2,11 @@ pub use crate::openssl_aes::{
     defs, defs::OpenSslVariants, errors::Error, errors::ErrorKind, errors::Result,
 };
 use openssl::symm::{decrypt, encrypt, Cipher};
-use std::result;
 
 const _IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
 const _IV32: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
 
+#[allow(dead_code)]
 pub struct OpensslAesWrapper {
     cipher: Cipher,
 }
