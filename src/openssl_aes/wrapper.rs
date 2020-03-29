@@ -79,6 +79,19 @@ mod tests {
     }
 
     #[test]
+    fn decrypt_with_different_key_should_mismatch() -> Result<()> {
+        let wrapper = OpensslAesWrapper::new(&OpenSslVariants::Aes128Xts);
+        let mut key =
+            kdf::derive_key_from_password(&String::from(PASSWORD), wrapper.get_key_length());
+        let enc = wrapper.encrypt(&key[..], &MSG)?;
+        key.pop();
+        key.push(10);
+        let dec = wrapper.decrypt(&key[..], &enc[..])?;
+        assert_ne!(&MSG[..], &dec[..]);
+        Ok(())
+    }
+
+    #[test]
     fn error_on_encrypt_key_length_too_short() {
         let wrapper = OpensslAesWrapper::new(&OpenSslVariants::Aes128Ctr);
         let key =
