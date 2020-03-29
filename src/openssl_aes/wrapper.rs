@@ -78,6 +78,9 @@ mod tests {
         Ok(())
     }
 
+    // when running the following test one must notice that in some of the schemes the
+    // decryption with a different key panics, and in some simply returns a value
+    // somewhat inconsistent behavior, I'm assuming from there being a difference between the schemes
     #[test]
     fn decrypt_with_different_key_should_mismatch() -> Result<()> {
         let wrapper = OpensslAesWrapper::new(&OpenSslVariants::Aes128Xts);
