@@ -37,6 +37,13 @@ impl Error {
     pub(crate) fn keylen(expected: usize, got: usize) -> Error {
         Error::from(ErrorKind::KeyLengthError { expected, got })
     }
+
+    pub(crate) fn unsupported<T>(msg: T) -> Error
+    where
+        T: ToString,
+    {
+        Error::from(ErrorKind::SchemeUnsupported(msg.to_string()))
+    }
 }
 
 impl Fail for Error {
@@ -64,6 +71,9 @@ pub enum ErrorKind {
         /// The actual key length.
         got: usize,
     },
+    //Encryption scheme is unsupported
+    SchemeUnsupported(String),
+
     /// An error in encryption.
     EncryptionError(String),
 
@@ -85,6 +95,7 @@ impl fmt::Display for ErrorKind {
                            but got {}.",
                 expected, got
             ),
+            ErrorKind::SchemeUnsupported(err) => write!(f, "scheme unsupported: '{}'", err),
             ErrorKind::EncryptionError(err) => write!(f, "encryption error: '{}'", err),
             ErrorKind::DecryptionError(err) => write!(f, "decryption error: '{}'", err),
             ErrorKind::__Nonexhaustive => panic!("invalid error"),

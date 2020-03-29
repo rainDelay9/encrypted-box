@@ -1,4 +1,4 @@
-use crate::encrypted_box::EncryptedBox;
+pub use crate::encrypted_box::EncryptedBox;
 use crate::kdf;
 use crate::openssl_aes::{defs as aes_defs, wrapper as aes};
 
@@ -18,11 +18,21 @@ impl EncryptedBoxBuilder {
         }
     }
 
-    pub fn add_field<'a, T>(&'a mut self, arg: T) -> &'a mut EncryptedBoxBuilder
+    pub fn add_field<'a, T>(&'a mut self, field: T) -> &'a mut EncryptedBoxBuilder
     where
         T: ToString,
     {
-        self.fields.extend(arg.to_string().as_bytes());
+        self.fields.extend(field.to_string().as_bytes());
+        self
+    }
+
+    pub fn add_fields<'a, T>(&'a mut self, fields: &[T]) -> &'a mut EncryptedBoxBuilder
+    where
+        T: ToString + std::fmt::Display,
+    {
+        for field in fields {
+            self.add_field(field);
+        }
         self
     }
 
@@ -40,6 +50,6 @@ impl EncryptedBoxBuilder {
     }
 
     pub fn build(&mut self) -> EncryptedBox {
-        EncryptedBox::new(self.fields.clone(), self.key.clone(), self.cipher)
+        EncryptedBox::new(self.fields.clone(), self.key.clone(), self.cipher.clone())
     }
 }

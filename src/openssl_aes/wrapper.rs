@@ -83,7 +83,7 @@ mod tests {
     // somewhat inconsistent behavior, I'm assuming from there being a difference between the schemes
     #[test]
     fn decrypt_with_different_key_should_mismatch() -> Result<()> {
-        let wrapper = OpensslAesWrapper::new(&OpenSslVariants::Aes128Xts);
+        let wrapper = OpensslAesWrapper::new(&OpenSslVariants::Aes128Ctr);
         let mut key =
             kdf::derive_key_from_password(&String::from(PASSWORD), wrapper.get_key_length());
         let enc = wrapper.encrypt(&key[..], &MSG)?;

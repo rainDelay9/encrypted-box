@@ -1,7 +1,7 @@
-mod encrypted_box;
-mod encrypted_box_builder;
-mod kdf;
-mod openssl_aes;
+pub mod encrypted_box;
+pub mod encrypted_box_builder;
+pub mod kdf;
+pub mod openssl_aes;
 
 // #[cfg(test)]
 // mod tests {
