@@ -132,3 +132,20 @@ fn double_scheme() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn happy_flow() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd_line = Command::cargo_bin("encrypted-box")?;
+    cmd_line
+        .arg("-p")
+        .arg("password")
+        .arg("-f")
+        .arg("field")
+        .arg("-s")
+        .arg("1");
+
+    let output = cmd_line.output()?;
+    assert_eq!(output.stdout, b"QDRFizR/JYrq4Ns6mfyKgg==\n");
+
+    Ok(())
+}
