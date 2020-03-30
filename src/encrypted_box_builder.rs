@@ -113,6 +113,11 @@ impl std::error::Error for BuildError {}
 mod tests {
     use super::*;
     use crate::openssl_aes::{defs::OpenSslVariants as variants, wrapper as aes};
+
+    // note: this text is long on purpose, as some modes of AES show differences only
+    // with large enough plaintexts
+    const LONG_TEXT : &str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec posuere cursus faucibus. Maecenas congue lectus vitae orci elementum pretium. Vestibulum ornare consectetur tellus, eget malesuada quam dapibus quis. Sed arcu quam, molestie sed lobortis vitae, iaculis at sem. Etiam ligula urna, viverra ut erat sed, luctus laoreet velit. Integer tempor sed mauris efficitur laoreet. Etiam ipsum est, varius in est id, blandit ultricies ex. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce vulputate velit quis urna porta, volutpat maximus ex ornare. Sed ut turpis quis tortor posuere interdum. Morbi nec augue sit amet odio efficitur.";
+
     #[test]
     fn add_int_field_test() {
         let field = 42;
@@ -121,6 +126,39 @@ mod tests {
         let mut vec: Vec<u8> = Vec::new();
         vec.extend(field.to_string().as_bytes());
         assert_eq!(ebb.fields, vec);
+    }
+
+    fn add_fields_test<T>(fields: Vec<T>)
+    where
+        T: ToString + std::fmt::Display,
+    {
+        let mut ebb = EncryptedBoxBuilder::new(aes::OpensslAesWrapper::new(&variants::Aes128Cbc));
+        let ebb = ebb.add_fields(&fields);
+        let mut vec: Vec<u8> = Vec::new();
+        for field in fields.iter() {
+            vec.extend(field.to_string().as_bytes());
+        }
+        assert_eq!(ebb.fields, vec);
+    }
+
+    #[test]
+    fn add_int_fields_test() {
+        let fields = [42, 22, 15, 19];
+        add_fields_test(fields.to_vec());
+    }
+
+    #[test]
+    fn add_str_fields_test() {
+        let fields = ["aaa", "bbbb", "cccc", "dddd"];
+        add_fields_test(fields.to_vec());
+    }
+
+    #[test]
+    fn set_long_password() -> Result<(), ExitFailure> {
+        let mut ebb = EncryptedBoxBuilder::new(aes::OpensslAesWrapper::new(&variants::Aes128Cbc));
+        ebb.set_password(String::from(LONG_TEXT));
+        ebb.build()?;
+        Ok(())
     }
 
     #[test]
@@ -136,17 +174,28 @@ mod tests {
     }
 
     #[test]
-    fn set_cipher_forall_aes_variants() -> Result<(), ExitFailure> {
-        // note: theis text is long on purpose, as some modes of AES show differences only
-        // with large enough plaintexts
-        let field = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec posuere cursus faucibus. Maecenas congue lectus vitae orci elementum pretium. Vestibulum ornare consectetur tellus, eget malesuada quam dapibus quis. Sed arcu quam, molestie sed lobortis vitae, iaculis at sem. Etiam ligula urna, viverra ut erat sed, luctus laoreet velit. Integer tempor sed mauris efficitur laoreet. Etiam ipsum est, varius in est id, blandit ultricies ex. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce vulputate velit quis urna porta, volutpat maximus ex ornare. Sed ut turpis quis tortor posuere interdum. Morbi nec augue sit amet odio efficitur.";
+    fn build_fails_when_no_password_is_set() -> Result<(), ExitFailure> {
+        let scheme = aes::OpensslAesWrapper::new(&variants::Aes192Cbc);
+
+        // initialize builder & encrypted-box
+        let mut ebb = EncryptedBoxBuilder::new(scheme);
+        let eb = ebb.add_field("field").build();
+        match eb {
+            Ok(_) => assert!(false),
+            _ => assert!(true),
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn set_cipher_forall_aes_variants_differect_encryption() -> Result<(), ExitFailure> {
         for variant1 in variants::iterator() {
             // create encrypted box builder with first variant
             let scheme1 = aes::OpensslAesWrapper::new(variant1);
             let mut ebb = EncryptedBoxBuilder::new(scheme1);
             let eb1 = ebb
                 .set_password(String::from("password"))
-                .add_field(field)
+                .add_field(LONG_TEXT)
                 .build()?;
             let ctext1 = eb1.encrypt()?;
             for variant2 in variants::iterator() {

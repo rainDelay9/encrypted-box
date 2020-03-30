@@ -20,14 +20,14 @@ fn main() -> Result<(), ExitFailure> {
         .with_context(|_| format!("unsupported scheme!"))?;
     let scheme = aes::OpensslAesWrapper::new(&aes_enum);
 
-    // initialize builder
+    // initialize builder & encrypted-box
     let mut ebb = EncryptedBoxBuilder::new(scheme);
     let eb = ebb
         .set_password(password)
         .add_fields(&opt.fields[..])
         .build()?;
 
-    // build & encrypt
+    // encrypt
     let enc = eb
         .encrypt()
         .with_context(|_| format!("encryption failed!"))?;
