@@ -5,9 +5,8 @@ pub use crate::openssl_aes::{
 use openssl::symm::{decrypt, encrypt, Cipher};
 
 const _IV12: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03";
-const _IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F";
+const _IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
 
-#[allow(dead_code)]
 #[derive(Copy, Clone)]
 pub struct OpensslAesWrapper {
     cipher: Cipher,
