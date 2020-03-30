@@ -36,7 +36,7 @@ Holds the main struct EncryptedBox which is initialized by EncryptedBoxBuilder. 
 
 ### encrypted-box-builder (encrypted-box-builder.rs)
 The module is a builder for the encrypted-box object.
-It was built according to https://doc.rust-lang.org/1.0.0/style/ownership/builders.html using the non-consuming template.
+It was built according to [this](https://doc.rust-lang.org/1.0.0/style/ownership/builders.html) using the non-consuming template.
 It is also generic with type T which must implement EncryptionScheme trait.
 
 ### kdf (kdf.rs)
@@ -47,3 +47,9 @@ A command line tool for encrypted-box. Tests for cli are in tests/cli.rs.
 
 ### openssl AES (openssl_aes/)
 A wrapper for the openssl AES Rust library. Actual Wrapper is openssl_aes/wrapper.rs, definitions in openssl_aes/defs.rs and errors in openssl_aes.rs.
+
+---
+
+#### CI/CD
+This repository has a ```.travis.yml``` file. It is a configuration for [Travis](https://travis-ci.com/) CI/CD tool which is very easy and recommended.
+)
