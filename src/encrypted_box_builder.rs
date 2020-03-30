@@ -214,4 +214,22 @@ mod tests {
         }
         Ok(())
     }
+
+    #[test]
+    fn key_reset_after_cipher_changed() -> Result<(), ExitFailure> {
+        // create encrypted box builder with first variant
+        let init_scheme = aes::OpensslAesWrapper::new(&variants::Aes128Cbc);
+        let mut ebb = EncryptedBoxBuilder::new(init_scheme);
+        let ebb = ebb
+            .set_password(String::from("password"))
+            .add_field(LONG_TEXT);
+        for variant in variants::iterator() {
+            let change_scheme = aes::OpensslAesWrapper::new(variant);
+            let key_len = change_scheme.get_key_length();
+            let ebb = ebb.set_cipher(&change_scheme);
+            //test that key length is as supposed to be
+            assert_eq!(ebb.key.len(), key_len);
+        }
+        Ok(())
+    }
 }
