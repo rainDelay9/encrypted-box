@@ -52,4 +52,3 @@ A wrapper for the openssl AES Rust library. Actual Wrapper is openssl_aes/wrappe
 
 #### CI/CD
 This repository has a ```.travis.yml``` file. It is a configuration for [Travis](https://travis-ci.com/) CI/CD tool which is very easy and recommended.
-)
