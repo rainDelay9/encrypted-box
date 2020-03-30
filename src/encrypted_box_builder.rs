@@ -2,7 +2,7 @@ pub use crate::encrypted_box::EncryptedBox;
 use crate::encryption_scheme::EncryptionScheme;
 use crate::kdf;
 
-pub struct EncryptedBoxBuilder<T: EncryptionScheme + Clone> {
+pub struct EncryptedBoxBuilder<T> {
     cipher: T,
     fields: Vec<u8>,
     key: Vec<u8>,
