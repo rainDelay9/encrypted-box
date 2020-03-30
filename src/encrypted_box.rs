@@ -1,14 +1,17 @@
+use crate::encryption_scheme::EncryptionScheme;
 use crate::kdf;
-use crate::openssl_aes::{errors as aes_errors, wrapper as aes};
 
-pub struct EncryptedBox {
+pub struct EncryptedBox<T> {
     fields: Vec<u8>,
     key: Vec<u8>,
-    scheme: aes::OpensslAesWrapper,
+    scheme: T,
 }
 
-impl EncryptedBox {
-    pub fn new(fields: Vec<u8>, key: Vec<u8>, scheme: aes::OpensslAesWrapper) -> EncryptedBox {
+impl<T> EncryptedBox<T>
+where
+    T: EncryptionScheme + Clone,
+{
+    pub fn new(fields: Vec<u8>, key: Vec<u8>, scheme: T) -> EncryptedBox<T> {
         EncryptedBox {
             fields,
             key,
@@ -16,16 +19,16 @@ impl EncryptedBox {
         }
     }
 
-    pub fn encrypt(&self) -> aes_errors::Result<Vec<u8>> {
+    pub fn encrypt(&self) -> Result<Vec<u8>, T::Error> {
         self.scheme.encrypt(&self.key[..], &self.fields[..])
     }
 
     pub fn decrypt(
         password: String,
         ciphertext: &[u8],
-        aes_enum: &aes::defs::OpenSslVariants,
-    ) -> aes_errors::Result<EncryptedBox> {
-        let scheme = aes::OpensslAesWrapper::new(aes_enum);
+        v: T::Variant,
+    ) -> Result<EncryptedBox<T>, T::Error> {
+        let scheme = T::new(&v);
         let key = kdf::derive_key_from_password(&password, scheme.get_key_length());
         let fields = scheme.decrypt(&key, ciphertext)?;
         Ok(EncryptedBox::new(fields, key, scheme))

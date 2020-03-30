@@ -1,6 +1,7 @@
 use base64;
 use encrypted_box::encrypted_box_builder::EncryptedBoxBuilder;
-use encrypted_box::openssl_aes::defs as aes_defs;
+use encrypted_box::encryption_scheme::EncryptionScheme;
+use encrypted_box::openssl_aes::{defs as aes_defs, wrapper as aes};
 use exitfailure::ExitFailure;
 use failure::ResultExt;
 use std::fs;
@@ -54,14 +55,14 @@ fn main() -> Result<(), ExitFailure> {
     let password: String = get_password(opt.password, opt.path_to_password)
         .with_context(|_| format!("could not determine password!"))?;
 
-    // get aes scheme enum
+    // get aes scheme
     let aes_enum = aes_defs::openssl_index_to_enum(opt.scheme)
         .with_context(|_| format!("unsupported scheme!"))?;
+    let scheme = aes::OpensslAesWrapper::new(&aes_enum);
 
     // initialize builder
-    let mut ebb = EncryptedBoxBuilder::new();
-    ebb.set_cipher(&aes_enum)
-        .set_password(password)
+    let mut ebb = EncryptedBoxBuilder::new(scheme);
+    ebb.set_password(password)
         .add_fields(&opt.fields[..])
         .build();
 

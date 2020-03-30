@@ -1,3 +1,4 @@
+pub use crate::encryption_scheme::EncryptionScheme;
 pub use crate::openssl_aes::{
     defs, defs::OpenSslVariants, errors::Error, errors::ErrorKind, errors::Result,
 };
@@ -13,28 +14,8 @@ pub struct OpensslAesWrapper {
 }
 
 impl OpensslAesWrapper {
-    pub fn new(e: &OpenSslVariants) -> OpensslAesWrapper {
-        OpensslAesWrapper {
-            cipher: defs::openssl_enum_to_cipher(e),
-        }
-    }
-    pub fn get_key_length(&self) -> usize {
-        self.cipher.key_len()
-    }
     pub fn get_iv_length(&self) -> Option<usize> {
         self.cipher.iv_len()
-    }
-    pub fn encrypt(&self, key: &[u8], msg: &[u8]) -> Result<Vec<u8>> {
-        self.check_key_len(key.len())?;
-        let iv = self.get_iv();
-        let enc = encrypt(self.cipher, key, iv, &msg[..]).map_err(|e| Error::encryption(e))?;
-        Ok(enc)
-    }
-    pub fn decrypt(&self, key: &[u8], ctext: &[u8]) -> Result<Vec<u8>> {
-        self.check_key_len(key.len())?;
-        let iv = self.get_iv();
-        let dec = decrypt(self.cipher, key, iv, &ctext[..]).map_err(|e| Error::decryption(e))?;
-        Ok(dec)
     }
 
     // currently we only support 12-byte or 16-byte IVs
@@ -55,9 +36,37 @@ impl OpensslAesWrapper {
     }
 }
 
+impl EncryptionScheme for OpensslAesWrapper {
+    type Error = Error;
+    type Variant = OpenSslVariants;
+
+    fn new(v: &OpenSslVariants) -> OpensslAesWrapper {
+        OpensslAesWrapper {
+            cipher: defs::openssl_enum_to_cipher(v),
+        }
+    }
+
+    fn get_key_length(&self) -> usize {
+        self.cipher.key_len()
+    }
+    fn encrypt(&self, key: &[u8], msg: &[u8]) -> Result<Vec<u8>> {
+        self.check_key_len(key.len())?;
+        let iv = self.get_iv();
+        let enc = encrypt(self.cipher, key, iv, &msg[..]).map_err(|e| Error::encryption(e))?;
+        Ok(enc)
+    }
+    fn decrypt(&self, key: &[u8], ctext: &[u8]) -> Result<Vec<u8>> {
+        self.check_key_len(key.len())?;
+        let iv = self.get_iv();
+        let dec = decrypt(self.cipher, key, iv, &ctext[..]).map_err(|e| Error::decryption(e))?;
+        Ok(dec)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::OpensslAesWrapper;
+    use crate::encryption_scheme::EncryptionScheme;
     use crate::kdf;
     use crate::openssl_aes::{defs::OpenSslVariants, errors::Result};
 
