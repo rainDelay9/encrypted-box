@@ -27,6 +27,7 @@ impl OpensslAesWrapper {
         }
     }
 
+    /// check that key length matches the required key length
     fn check_key_len(&self, key_len: usize) -> Result<()> {
         let expected_key_length = self.get_key_length();
         if expected_key_length != key_len {
@@ -36,8 +37,12 @@ impl OpensslAesWrapper {
     }
 }
 
+/// See encryption_scheme.rs
 impl EncryptionScheme for OpensslAesWrapper {
+    /// error type returned (openssl_aes::errors::Error)
     type Error = Error;
+
+    /// variant type is OpenSslVariants
     type Variant = OpenSslVariants;
 
     fn new(v: &OpenSslVariants) -> OpensslAesWrapper {

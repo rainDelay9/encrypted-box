@@ -1,6 +1,8 @@
 use crate::encryption_scheme::EncryptionScheme;
 use crate::kdf;
 
+/// An implementation of an encrypted box
+/// which holds the encryption of a few fields
 pub struct EncryptedBox<T> {
     fields: Vec<u8>,
     key: Vec<u8>,
@@ -11,6 +13,7 @@ impl<T> EncryptedBox<T>
 where
     T: EncryptionScheme + Clone,
 {
+    /// create a new encrypted box
     pub fn new(fields: Vec<u8>, key: Vec<u8>, scheme: T) -> EncryptedBox<T> {
         EncryptedBox {
             fields,
@@ -19,10 +22,12 @@ where
         }
     }
 
+    /// encrypt content (fields)
     pub fn encrypt(&self) -> Result<Vec<u8>, T::Error> {
         self.scheme.encrypt(&self.key[..], &self.fields[..])
     }
 
+    /// decrypt ciphertext into new encrypted box
     pub fn decrypt(
         password: String,
         ciphertext: &[u8],

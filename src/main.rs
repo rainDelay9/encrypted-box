@@ -8,6 +8,32 @@ use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+fn main() -> Result<(), ExitFailure> {
+    let opt = Opt::from_args();
+
+    // get password
+    let password: String = get_password(opt.password, opt.path_to_password)
+        .with_context(|_| format!("could not determine password!"))?;
+
+    // get aes scheme
+    let aes_enum = aes_defs::openssl_index_to_enum(opt.scheme)
+        .with_context(|_| format!("unsupported scheme!"))?;
+    let scheme = aes::OpensslAesWrapper::new(&aes_enum);
+
+    // initialize builder
+    let mut ebb = EncryptedBoxBuilder::new(scheme);
+    ebb.set_password(password).add_fields(&opt.fields[..]);
+
+    // build & encrypt
+    let eb = ebb.build()?;
+    let enc = eb
+        .encrypt()
+        .with_context(|_| format!("encryption failed!"))?;
+    println!("{}", base64::encode(&enc[..]));
+
+    Ok(())
+}
+
 /// This tool allows you to encrypt any number of fields
 /// with AES (choosing from a few flavors). It relies on
 /// the openssl implementation. Output is in base 64. See
@@ -46,34 +72,6 @@ struct Opt {
     /// 11. AES 256 OFB]
     #[structopt(short = "s", long = "scheme", default_value = "0")]
     scheme: u32,
-}
-
-fn main() -> Result<(), ExitFailure> {
-    let opt = Opt::from_args();
-
-    // get password
-    let password: String = get_password(opt.password, opt.path_to_password)
-        .with_context(|_| format!("could not determine password!"))?;
-
-    // get aes scheme
-    let aes_enum = aes_defs::openssl_index_to_enum(opt.scheme)
-        .with_context(|_| format!("unsupported scheme!"))?;
-    let scheme = aes::OpensslAesWrapper::new(&aes_enum);
-
-    // initialize builder
-    let mut ebb = EncryptedBoxBuilder::new(scheme);
-    ebb.set_password(password)
-        .add_fields(&opt.fields[..])
-        .build();
-
-    // build & encrypt
-    let eb = ebb.build();
-    let enc = eb
-        .encrypt()
-        .with_context(|_| format!("encryption failed!"))?;
-    println!("{}", base64::encode(&enc[..]));
-
-    Ok(())
 }
 
 fn get_password(password: Option<String>, path: PathBuf) -> Result<String, std::io::Error> {
