@@ -22,10 +22,12 @@ fn main() -> Result<(), ExitFailure> {
 
     // initialize builder
     let mut ebb = EncryptedBoxBuilder::new(scheme);
-    ebb.set_password(password).add_fields(&opt.fields[..]);
+    let eb = ebb
+        .set_password(password)
+        .add_fields(&opt.fields[..])
+        .build()?;
 
     // build & encrypt
-    let eb = ebb.build()?;
     let enc = eb
         .encrypt()
         .with_context(|_| format!("encryption failed!"))?;
