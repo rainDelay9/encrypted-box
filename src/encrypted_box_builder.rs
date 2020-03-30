@@ -1,5 +1,5 @@
 pub use crate::encrypted_box::EncryptedBox;
-use crate::encryption_scheme::EncryptionScheme;
+pub use crate::encryption_scheme::EncryptionScheme;
 use crate::kdf;
 use exitfailure::ExitFailure;
 use std::fmt;
@@ -12,6 +12,7 @@ pub struct EncryptedBoxBuilder<T> {
     cipher: T,
     fields: Vec<u8>,
     key: Vec<u8>,
+    password: String,
 }
 
 /// This is an implementation for an encrypted box builder
@@ -27,6 +28,7 @@ where
             cipher: cipher,
             fields: Vec::new(),
             key: Vec::new(),
+            password: String::from(""),
         }
     }
 
@@ -66,8 +68,13 @@ where
 
     /// set a password (of which a key will be derived)
     pub fn set_password<'a>(&'a mut self, password: String) -> &'a mut EncryptedBoxBuilder<T> {
-        self.key = kdf::derive_key_from_password(&password, self.cipher.get_key_length());
+        self.password = password;
+        self.set_key(self.password.clone());
         self
+    }
+
+    fn set_key(&mut self, password: String) {
+        self.key = kdf::derive_key_from_password(&password, self.cipher.get_key_length());
     }
 
     /// set a cipher to some other cipher
@@ -75,6 +82,8 @@ where
     /// to be encrypted by many ciphers
     pub fn set_cipher<'a>(&'a mut self, cipher: &T) -> &'a mut EncryptedBoxBuilder<T> {
         self.cipher = cipher.clone();
+        // we need to reset the key for the new cipher
+        self.set_key(self.password.clone());
         self
     }
 }
@@ -99,3 +108,61 @@ impl fmt::Display for BuildError {
 }
 
 impl std::error::Error for BuildError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::openssl_aes::{defs::OpenSslVariants as variants, wrapper as aes};
+    #[test]
+    fn add_int_field_test() {
+        let field = 42;
+        let mut ebb = EncryptedBoxBuilder::new(aes::OpensslAesWrapper::new(&variants::Aes128Cbc));
+        let ebb = ebb.add_field(&field);
+        let mut vec: Vec<u8> = Vec::new();
+        vec.extend(field.to_string().as_bytes());
+        assert_eq!(ebb.fields, vec);
+    }
+
+    #[test]
+    fn set_password_forall_aes_variants() {
+        let password = String::from("password");
+        for variant in variants::iterator() {
+            let scheme = aes::OpensslAesWrapper::new(variant);
+            let mut ebb = EncryptedBoxBuilder::new(scheme);
+            let ebb = ebb.set_password(password.clone());
+            let key: Vec<u8> = kdf::derive_key_from_password(&password, scheme.get_key_length());
+            assert_eq!(ebb.key, key);
+        }
+    }
+
+    #[test]
+    fn set_cipher_forall_aes_variants() -> Result<(), ExitFailure> {
+        // note: theis text is long on purpose, as some modes of AES show differences only
+        // with large enough plaintexts
+        let field = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec posuere cursus faucibus. Maecenas congue lectus vitae orci elementum pretium. Vestibulum ornare consectetur tellus, eget malesuada quam dapibus quis. Sed arcu quam, molestie sed lobortis vitae, iaculis at sem. Etiam ligula urna, viverra ut erat sed, luctus laoreet velit. Integer tempor sed mauris efficitur laoreet. Etiam ipsum est, varius in est id, blandit ultricies ex. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce vulputate velit quis urna porta, volutpat maximus ex ornare. Sed ut turpis quis tortor posuere interdum. Morbi nec augue sit amet odio efficitur.";
+        for variant1 in variants::iterator() {
+            // create encrypted box builder with first variant
+            let scheme1 = aes::OpensslAesWrapper::new(variant1);
+            let mut ebb = EncryptedBoxBuilder::new(scheme1);
+            let eb1 = ebb
+                .set_password(String::from("password"))
+                .add_field(field)
+                .build()?;
+            let ctext1 = eb1.encrypt()?;
+            for variant2 in variants::iterator() {
+                if variant1 == variant2 {
+                    continue;
+                }
+                // change cipher to different cipher
+                let scheme2 = aes::OpensslAesWrapper::new(variant2);
+                let ebb = ebb.set_cipher(&scheme2);
+                let eb2 = ebb.build()?;
+                let ctext2 = eb2.encrypt()?;
+
+                //test that encryptions differ
+                assert_ne!(ctext1, ctext2);
+            }
+        }
+        Ok(())
+    }
+}

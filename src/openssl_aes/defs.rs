@@ -2,7 +2,7 @@ use crate::openssl_aes::errors;
 use openssl::symm::Cipher;
 use std::slice::Iter;
 
-#[allow(dead_code)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum OpenSslVariants {
     //AES128
     Aes128Ecb,

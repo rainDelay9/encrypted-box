@@ -54,7 +54,7 @@ mod tests {
     const PASSWORD: &'static str = "password";
 
     #[test]
-    fn test_encrypt_with_vector() -> Result<(), aes::Error> {
+    fn encrypt_with_vector() -> Result<(), aes::Error> {
         let scheme = aes::OpensslAesWrapper::new(&aes_variant::Aes128Cbc);
 
         let eb = EncryptedBox::new(FIELDS[..].to_vec(), KEY.to_vec(), scheme);
@@ -70,18 +70,20 @@ mod tests {
     }
 
     #[test]
-    fn test_encrypt_decrypt() -> Result<(), aes::Error> {
-        let scheme = aes::OpensslAesWrapper::new(&aes_variant::Aes128Cbc);
+    fn encrypt_decrypt_aes_all_varieties() -> Result<(), aes::Error> {
+        for variant in aes_variant::iterator() {
+            let scheme = aes::OpensslAesWrapper::new(variant);
 
-        let pass = String::from(PASSWORD);
-        let key = kdf::derive_key_from_password(&pass, scheme.get_key_length());
+            let pass = String::from(PASSWORD);
+            let key = kdf::derive_key_from_password(&pass, scheme.get_key_length());
 
-        let eb = EncryptedBox::new(FIELDS[..].to_vec(), key, scheme);
-        let enc = eb.encrypt()?;
-        let dec_eb: EncryptedBox<aes::OpensslAesWrapper> =
-            EncryptedBox::decrypt(pass, &enc[..], aes_variant::Aes128Cbc)?;
+            let eb = EncryptedBox::new(FIELDS[..].to_vec(), key, scheme);
+            let enc = eb.encrypt()?;
+            let dec_eb: EncryptedBox<aes::OpensslAesWrapper> =
+                EncryptedBox::decrypt(pass, &enc[..], *variant)?;
 
-        assert_eq!(dec_eb.fields[..], FIELDS[..]);
+            assert_eq!(dec_eb.fields[..], FIELDS[..]);
+        }
         Ok(())
     }
 }

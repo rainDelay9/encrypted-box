@@ -7,7 +7,7 @@ use openssl::symm::{decrypt, encrypt, Cipher};
 const _IV12: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03";
 const _IV16: &'static [u8] = b"\x00\x01\x02\x03\x04\x05\x06\x07\x00\x01\x02\x03\x04\x05\x06\x07";
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct OpensslAesWrapper {
     cipher: Cipher,
 }
