@@ -78,7 +78,7 @@ where
     }
 
     /// set a cipher to some other cipher
-    /// this is handy id you are looking for a single builder with set fields
+    /// this is handy if you are looking for a single builder with set fields
     /// to be encrypted by many ciphers
     pub fn set_cipher<'a>(&'a mut self, cipher: &T) -> &'a mut EncryptedBoxBuilder<T> {
         self.cipher = cipher.clone();
